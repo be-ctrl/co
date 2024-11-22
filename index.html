@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الحاسبة العلمية المتقدمة</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f0f4ff 0%, #f4efff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .calculator {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .history {
+            width: 100%;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            text-align: left;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            color: #666;
+        }
+        .display-container {
+            margin-bottom: 1rem;
+        }
+        .expression {
+            width: 100%;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+            padding: 0 1rem;
+            font-size: 1rem;
+            text-align: left;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #666;
+        }
+        .display {
+            width: 100%;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            padding: 0 1rem;
+            font-size: 1.5rem;
+            text-align: left;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .mode-switch {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.9rem;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .mode-btn.active {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+        .btn {
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn-number {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .btn-operator {
+            background-color: #ffe4e6;
+            color: #be123c;
+        }
+        .btn-function {
+            background-color: #e0e7ff;
+            color: #4338ca;
+        }
+        .btn-clear {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .btn-equals {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            grid-column: span 4;
+        }
+        .btn:hover {
+            filter: brightness(0.95);
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <!-- History Display -->
+        <div class="history" id="history"></div>
+        
+        <!-- Mode Switch -->
+        <div class="mode-switch">
+            <button onclick="changeMode('deg')" class="mode-btn active" id="degMode">درجات</button>
+            <button onclick="changeMode('rad')" class="mode-btn" id="radMode">راديان</button>
+        </div>
+        
+        <!-- Display Container -->
+        <div class="display-container">
+            <div class="expression" id="expression"></div>
+            <input type="text" id="display" class="display" readonly value="0">
+        </div>
+
+        <div class="buttons">
+            <!-- Scientific Constants -->
+            <button onclick="calculate('pi')" class="btn btn-function">π</button>
+            <button onclick="calculate('e_const')" class="btn btn-function">e</button>
+            <button onclick="calculate('fact')" class="btn btn-function">n!</button>
+            <button onclick="clearDisplay()" class="btn btn-clear">C</button>
+
+            <!-- Advanced Functions -->
+            <button onclick="calculate('sqrt')" class="btn btn-function">√</button>
+            <button onclick="calculate('log')" class="btn btn-function">log</button>
+            <button onclick="calculate('ln')" class="btn btn-function">ln</button>
+            <button onclick="calculate('e')" class="btn btn-function">eˣ</button>
+
+            <!-- Trigonometric Functions -->
+            <button onclick="calculate('sin')" class="btn btn-function">sin</button>
+            <button onclick="calculate('cos')" class="btn btn-function">cos</button>
+            <button onclick="calculate('tan')" class="btn btn-function">tan</button>
+            <button onclick="calculate('abs')" class="btn btn-function">|x|</button>
+
+            <!-- Numbers and Operations -->
+            <button onclick="appendNumber('7')" class="btn btn-number">7</button>
+            <button onclick="appendNumber('8')" class="btn btn-number">8</button>
+            <button onclick="appendNumber('9')" class="btn btn-number">9</button>
+            <button onclick="appendOperator('/')" class="btn btn-operator">÷</button>
+            
+            <button onclick="appendNumber('4')" class="btn btn-number">4</button>
+            <button onclick="appendNumber('5')" class="btn btn-number">5</button>
+            <button onclick="appendNumber('6')" class="btn btn-number">6</button>
+            <button onclick="appendOperator('*')" class="btn btn-operator">×</button>
+            
+            <button onclick="appendNumber('1')" class="btn btn-number">1</button>
+            <button onclick="appendNumber('2')" class="btn btn-number">2</button>
+            <button onclick="appendNumber('3')" class="btn btn-number">3</button>
+            <button onclick="appendOperator('-')" class="btn btn-operator">-</button>
+            
+            <button onclick="appendNumber('0')" class="btn btn-number" style="grid-column: span 2;">0</button>
+            <button onclick="appendNumber('.')" class="btn btn-number">.</button>
+            <button onclick="appendOperator('+')" class="btn btn-operator">+</button>
+            
+            <button onclick="calculateResult()" class="btn btn-equals">=</button>
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let expressionDiv = document.getElementById('expression');
+        let historyDiv = document.getElementById('history');
+        let currentInput = '0';
+        let currentExpression = '';
+        let lastOperation = '';
+        let newNumber = true;
+        let angleMode = 'deg';
+
+        function changeMode(mode) {
+            angleMode = mode;
+            document.getElementById('degMode').classList.toggle('active', mode === 'deg');
+            document.getElementById('radMode').classList.toggle('active', mode === 'rad');
+        }
+
+        function addToHistory(expr, result) {
+            const historyItem = document.createElement('div');
+            historyItem.textContent = `${expr} = ${result}`;
+            historyDiv.insertBefore(historyItem, historyDiv.firstChild);
+            if (historyDiv.children.length > 3) {
+                historyDiv.removeChild(historyDiv.lastChild);
+            }
+        }
+
+        function updateDisplay() {
+            display.value = currentInput;
+            expressionDiv.textContent = currentExpression;
+        }
+
+        function appendNumber(num) {
+            if (newNumber) {
+                currentInput = num;
+                newNumber = false;
+            } else {
+                currentInput = currentInput === '0' ? num : currentInput + num;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            currentExpression = currentInput + " " + op + " ";
+            lastOperation = op;
+            newNumber = true;
+            updateDisplay();
+        }
+
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            return n * factorial(n - 1);
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            currentExpression = '';
+            lastOperation = '';
+            newNumber = true;
+            updateDisplay();
+        }
+
+        function calculate(operation) {
+            const num = parseFloat(currentInput);
+            let result;
+            
+            switch(operation) {
+                case 'sin':
+                    result = angleMode === 'deg' ? 
+                        Math.sin(num * Math.PI / 180) : Math.sin(num);
+                    break;
+                case 'cos':
+                    result = angleMode === 'deg' ? 
+                        Math.cos(num * Math.PI / 180) : Math.cos(num);
+                    break;
+                case 'tan':
+                    result = angleMode === 'deg' ? 
+                        Math.tan(num * Math.PI / 180) : Math.tan(num);
+                    break;
+                case 'sqrt':
+                    result = Math.sqrt(num);
+                    break;
+                case 'log':
+                    result = Math.log10(num);
+                    break;
+                case 'ln':
+                    result = Math.log(num);
+                    break;
+                case 'e':
+                    result = Math.exp(num);
+                    break;
+                case 'fact':
+                    result = factorial(Math.round(Math.abs(num)));
+                    break;
+                case 'abs':
+                    result = Math.abs(num);
+                    break;
+                case 'pi':
+                    result = Math.PI;
+                    break;
+                case 'e_const':
+                    result = Math.E;
+                    break;
+            }
+            
+            currentInput = result.toFixed(8).replace(/\.?0+$/, '');
+            addToHistory(`${operation}(${num})`, currentInput);
+            newNumber = true;
+            updateDisplay();
+        }
+
+        function calculateResult() {
+            try {
+                const expr = currentExpression + currentInput;
+                let result = eval(currentExpression + currentInput);
+                
+                // Add to history
+                addToHistory(expr, result);
+                
+                currentInput = result.toString();
+                currentExpression = '';
+                newNumber = true;
+                updateDisplay();
+            } catch (e) {
+                currentInput = 'Error';
+                currentExpression = '';
+                updateDisplay();
+                setTimeout(clearDisplay, 1500);
+            }
+        }
+    </script>
+</body>
+</html>
