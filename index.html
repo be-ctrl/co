@@ -25,6 +25,16 @@
         .progress-bar {
             transition: width 0.3s ease;
         }
+
+        @keyframes steam {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            50% { transform: translateY(-10px) scale(1.2); opacity: 0.4; }
+            100% { transform: translateY(-20px) scale(1.4); opacity: 0; }
+        }
+
+        .steam {
+            animation: steam 2s infinite;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen p-4 md:p-8">
@@ -65,13 +75,13 @@
     <script>
         const schedule = {
             'الأحد': [
-                { time: '9:00-9:45', name: 'Headway Beginners', lecturer: 'م.م. علي خلف عبدالله' },
+                { time: '9:00-9:45', name: 'اللغة العربية', lecturer: 'م.د. إلهام روكان عبد' },
                 { time: '10:00-10:45', name: 'تاريخ العلاقات الدولية', lecturer: 'أ.د. عبدالغني محمد عبدالعزيز' },
                 { time: '11:00-11:45', name: 'الأنظمة السياسية والدستورية المقارنة', lecturer: 'أ.د. محمد شطب' },
                 { time: '12:00-12:45', name: 'المدخل لدراسة القانون', lecturer: 'أ.م. رياض ناظم' }
             ],
             'الاثنين': [
-                { time: '9:00-9:45', name: 'اللغة العربية', lecturer: 'د. ضياء حامد حمود' },
+                { time: '9:00-9:45', name: 'Headway Beginners', lecturer: 'م.م. علي خلف عبدالله' },
                 { time: '10:00-10:45', name: 'حقوق الإنسان', lecturer: 'م.م. زينب غالب' },
                 { time: '11:00-11:45', name: 'مدخل علم الاقتصاد', lecturer: 'م. هاشم راشد عجرش' },
                 { time: '12:00-12:45', name: 'Introduction to Political Science', lecturer: 'م.م. ماجد أحمد' }
@@ -97,10 +107,16 @@
 
         const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
         let activeDay = getCurrentDay();
+        let showingSchedule = false;
 
         function getCurrentDay() {
             const daysAr = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
             return daysAr[new Date().getDay()];
+        }
+
+        function isWeekend() {
+            const day = new Date().getDay();
+            return day === 5 || day === 6; // 5 is Friday, 6 is Saturday
         }
 
         function parseTime(timeStr) {
@@ -119,7 +135,7 @@
 
             if (day !== currentDay) {
                 return {
-                    status: 'لم يبدأ اليوم',
+                    status: 'لم يبدء',
                     progress: 0,
                     remaining: '---',
                     color: 'bg-gray-200'
@@ -171,15 +187,43 @@
                 btn.textContent = day;
                 btn.onclick = () => {
                     activeDay = day;
+                    showingSchedule = true;
                     updateUI();
                 };
                 tabsContainer.appendChild(btn);
             });
         }
 
+        function createWeekendDisplay() {
+            return `
+                <div class="text-center py-12">
+                    <div class="relative inline-block mb-8">
+                        <i class="fas fa-mug-hot text-8xl text-gray-800"></i>
+                        <!-- Steam -->
+                        <div class="absolute -top-6 left-6 opacity-0 steam">
+                            <i class="fas fa-cloud text-gray-400 text-2xl"></i>
+                        </div>
+                        <div class="absolute -top-4 left-12 opacity-0 steam" style="animation-delay: 0.4s;">
+                            <i class="fas fa-cloud text-gray-400 text-2xl"></i>
+                        </div>
+                        <div class="absolute -top-8 left-16 opacity-0 steam" style="animation-delay: 0.8s;">
+                            <i class="fas fa-cloud text-gray-400 text-xl"></i>
+                        </div>
+                    </div>
+                    <h2 class="text-4xl font-bold text-gray-800 mb-4">عطلة سعيدة! 🎉</h2>
+                    <p class="text-xl text-gray-600">استمتع بيومك واسترخِ مع فنجان من القهوة ☕</p>
+                </div>
+            `;
+        }
+
         function updateSchedule() {
             const container = document.getElementById('schedule-content');
             container.innerHTML = '';
+            
+            if (isWeekend() && !showingSchedule) {
+                container.innerHTML = createWeekendDisplay();
+                return;
+            }
             
             if (schedule[activeDay]) {
                 schedule[activeDay].forEach(lecture => {
@@ -232,7 +276,6 @@
         }
 
         function updateUI() {
-            // تحديث الأزرار
             const buttons = document.querySelectorAll('#days-tabs button');
             buttons.forEach(btn => {
                 btn.className = `px-4 py-2 rounded-lg font-bold transition-all ${btn.textContent === activeDay ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-blue-50'}`;
@@ -249,7 +292,9 @@
         // تحديث كل ثانية
         setInterval(() => {
             updateDateTime();
-            updateSchedule();
+            if (!showingSchedule) {
+                updateSchedule();
+            }
         }, 1000);
     </script>
 </body>
